@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">AppChatV2</string>
+    <string name="fragment_login_button_register_text">Register</string>
+    <string name="fragment_login_button_login_text">Login</string>
+    <string name="fragment_login_edit_text_password_hint_text">Password</string>
+    <string name="fragment_login_edit_text_email_hint_text">Email</string>
+    <string name="fragment_register_text_view_title_text">Register</string>
+    <string name="fragment_register_edit_text_hint_text">ConfirmPassword</string>
+    <string name="register_fragment_edit_text_full_name_hint_text">Full Name</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="fragment_register_button_cancel_text">Cancel</string>
+    <string name="fragment_group_chat_text_view_logout_text">LogOut</string>
+    <string name="fragment_login_button_login_with_google_text">Login With Google</string>
+    <string name="fragment_login_message_empty_edit_text">Vui lòng nhập đẩy đủ thông tin</string>
+    <string name="facebook_app_id">2483564451878550</string>
+    <string name="fb_login_protocol_scheme">fb2483564451878550</string>
+    <string name="item_search_friend_test_text">Trịnh Hoàng Anh</string>
+    <string name="text_test_data">xin chào bạn nhé</string>
+
+</resources>

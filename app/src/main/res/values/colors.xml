@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="colorHeader">#FA2F2F</color>
+    <color name="textColor">#000</color>
+    <color name="textLink">#2A4FDF</color>
+    <color name="message_send_background_color">#2196F3</color>
+    <color name="colorWhite">#fff</color>
+    <color name="backGroundTabLayout">#D8D8D8</color>
+    <color name="color_text_send_message">#fff</color>
+    <color name="text_receive_message">#000</color>
+</resources>
