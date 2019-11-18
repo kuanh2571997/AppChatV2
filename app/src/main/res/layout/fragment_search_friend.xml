@@ -19,6 +19,7 @@
         android:layout_width="0dp"
         android:layout_height="35dp"
         android:hint="Nhập tên bạn bè"
+        android:paddingLeft="20dp"
         android:background="@drawable/edit_text_back_ground"
         app:layout_constraintWidth_percent="0.7"
         app:layout_constraintTop_toTopOf="@id/view"

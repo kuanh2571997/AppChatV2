@@ -3,20 +3,10 @@ package appchat.anh.appchatv2.chat;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,15 +14,21 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -48,6 +44,14 @@ import appchat.anh.appchatv2.adapter.DetailChatAdapter;
 import appchat.anh.appchatv2.common.Contacts;
 import appchat.anh.appchatv2.model.Group;
 import appchat.anh.appchatv2.model.Message;
+import appchat.anh.appchatv2.notifications.APIService;
+import appchat.anh.appchatv2.notifications.Client;
+import appchat.anh.appchatv2.notifications.Data;
+import appchat.anh.appchatv2.notifications.Response;
+import appchat.anh.appchatv2.notifications.Sender;
+import appchat.anh.appchatv2.notifications.Token;
+import retrofit2.Call;
+import retrofit2.Callback;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -68,10 +72,15 @@ public class DetailChatFragment extends Fragment {
     private Group mGroup;
     private StorageReference mStoreReference;
     private FirebaseStorage mFireBaseStorage;
+    private String mSendTo;
+
+    APIService apiService;
+    boolean notify = false;
 
     private View.OnClickListener mBtnSendClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            notify=true;
             String mess = mEditMess.getText().toString();
             mEditMess.setText("");
             Message inputMess = new Message("text", "", "", mess, System.currentTimeMillis() / 1000);
@@ -161,6 +170,9 @@ public class DetailChatFragment extends Fragment {
         final RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
         mRecyclerViewDetailChat.setLayoutManager(layoutManager);
         mRecyclerViewDetailChat.setAdapter(mDetailChatAdapter);
+
+        apiService = Client.getRetrofit("https://fcm.googleapis.com/").create(APIService.class);
+
     }
 
 
@@ -178,6 +190,7 @@ public class DetailChatFragment extends Fragment {
         mUser = mFirebaseAuth.getCurrentUser();
         mFireBaseStorage = FirebaseStorage.getInstance();
         mStoreReference = mFireBaseStorage.getReference();
+
     }
 
     private void getDataFirebase() {
@@ -191,6 +204,22 @@ public class DetailChatFragment extends Fragment {
                     mDetailChatAdapter.addMessage(message);
                 }
                 mRecyclerViewDetailChat.smoothScrollToPosition(mDetailChatAdapter.getItemCount() - 1);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+        mData.child("Notification").child(mGroup.getId()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()){
+                    String id = (String) ds.getValue();
+                    if(id!=null && !id.equals(mUser.getUid())){
+                        mSendTo=id;
+                    }
+                }
             }
 
             @Override
@@ -220,6 +249,43 @@ public class DetailChatFragment extends Fragment {
         message.setFromId(mUser.getUid());
         databaseReference.child("Chats").child(mGroup.getId()).push().setValue(message);
         databaseReference.child("RecentMessage").child(mGroup.getId()).setValue(message);
+
+        if(notify){
+            sendNotification(mUser.getUid(), mUser.getDisplayName(), message.getMessage());
+        }
+        notify=false;
+    }
+
+    private void sendNotification(final String uid, final String displayName, final String message) {
+        DatabaseReference allTokens = FirebaseDatabase.getInstance().getReference("Tokens");
+        Query query = allTokens.orderByKey().equalTo(mSendTo);
+        query.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds:dataSnapshot.getChildren()){
+                    Token token = ds.getValue(Token.class);
+                    Data data = new Data(uid, displayName+":"+message,"Tin nhắn mới", uid, mGroup.getId(), R.drawable.newmess);
+                    Sender sender = new Sender(data, token.getToken());
+                    apiService.sendNotification(sender)
+                            .enqueue(new Callback<Response>() {
+                                @Override
+                                public void onResponse(Call<Response> call, retrofit2.Response<Response> response) {
+                                    Toast.makeText(getActivity(), ""+response.message(), Toast.LENGTH_SHORT).show();
+                                }
+
+                                @Override
+                                public void onFailure(Call<Response> call, Throwable t) {
+                                }
+                            });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
     }
 
     private void upLoadImage(Bitmap bitmap, String imgName) {

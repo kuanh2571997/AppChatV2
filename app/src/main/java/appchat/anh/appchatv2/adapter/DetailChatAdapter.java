@@ -2,7 +2,6 @@ package appchat.anh.appchatv2.adapter;
 
 import android.content.Context;
 import android.os.Build;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -93,12 +92,11 @@ public class DetailChatAdapter extends RecyclerView.Adapter<DetailChatAdapter.Vi
 
                 }
             });
-            if(message.getContentType().equals("image")){
+            if (message.getContentType().equals("image")) {
                 mImgReceive.setVisibility(View.VISIBLE);
                 Glide.with(mContext).load(message.getLinkImg()).into(mImgReceive);
                 mTxtReceiveMessage.setVisibility(View.GONE);
-            }
-            else{
+            } else {
                 mTxtReceiveMessage.setText(message.getMessage());
                 mImgReceive.setVisibility(View.GONE);
             }
@@ -120,12 +118,11 @@ public class DetailChatAdapter extends RecyclerView.Adapter<DetailChatAdapter.Vi
 
         public void bindViewHolder(Message message) {
 
-            if(message.getContentType().equals("image")){
+            if (message.getContentType().equals("image")) {
                 mImgSend.setVisibility(View.VISIBLE);
                 Glide.with(mContext).load(message.getLinkImg()).into(mImgSend);
                 mTxtSendMessage.setVisibility(View.GONE);
-            }
-            else{
+            } else {
                 mTxtSendMessage.setText(message.getMessage());
                 mImgSend.setVisibility(View.GONE);
             }
@@ -141,12 +138,13 @@ public class DetailChatAdapter extends RecyclerView.Adapter<DetailChatAdapter.Vi
 
     abstract class ViewHolder extends RecyclerView.ViewHolder {
         abstract void bindViewHolder(Message message);
+
         private ViewHolder(@NonNull View itemView) {
             super(itemView);
         }
     }
 
-    public void clearMess(){
+    public void clearMess() {
         mArrMess.clear();
     }
 
@@ -156,7 +154,7 @@ public class DetailChatAdapter extends RecyclerView.Adapter<DetailChatAdapter.Vi
         mArrMess.sort(new Comparator<Message>() {
             @Override
             public int compare(Message o1, Message o2) {
-                if(o1.getTime()>o2.getTime()){
+                if (o1.getTime() > o2.getTime()) {
                     return 1;
                 }
                 return 0;

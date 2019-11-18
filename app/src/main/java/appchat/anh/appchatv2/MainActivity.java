@@ -3,7 +3,9 @@ package appchat.anh.appchatv2;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,11 +21,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import appchat.anh.appchatv2.display_friend.ParentDisplayFriendFragment;
 import appchat.anh.appchatv2.login_and_register.LoginFragment;
 import appchat.anh.appchatv2.login_and_register.RegisterFragment;
 import appchat.anh.appchatv2.model.User;
+import appchat.anh.appchatv2.notifications.Token;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity {
@@ -120,6 +124,12 @@ public class MainActivity extends AppCompatActivity {
         ParentDisplayFriendFragment friendFragment = ParentDisplayFriendFragment.newInstance(user);
         mFragmentTransaction.replace(R.id.frame, friendFragment);
         mFragmentTransaction.commit();
+        updateToken(FirebaseInstanceId.getInstance().getToken());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     private void checkUser(){
@@ -128,6 +138,10 @@ public class MainActivity extends AppCompatActivity {
             setToolbar(mCurrentUser);
             initParentDisplayFriendFragment(mCurrentUser);
             mDatabaseReference.child("Users").child(mCurrentUser.getId()).child("status").setValue("online");
+            SharedPreferences sp = getSharedPreferences("SP_USER", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("Current_USERID", mCurrentUser.getId());
+            editor.apply();
         }
         else{
             initLoginFragment();
@@ -182,4 +196,11 @@ public class MainActivity extends AppCompatActivity {
             initLoginFragment();
         }
     }
+
+    public void updateToken(String token){
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Tokens");
+        Token mToken = new Token(token);
+        ref.child(mCurrentUser.getId()).setValue(mToken);
+    }
+
 }

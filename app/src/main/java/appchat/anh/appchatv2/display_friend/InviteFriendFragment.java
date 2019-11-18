@@ -15,6 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,6 +29,7 @@ import java.util.ArrayList;
 import appchat.anh.appchatv2.R;
 import appchat.anh.appchatv2.adapter.InviteFriendAdapter;
 import appchat.anh.appchatv2.common.Contacts;
+import appchat.anh.appchatv2.model.Group;
 import appchat.anh.appchatv2.model.Message;
 import appchat.anh.appchatv2.model.User;
 
@@ -41,6 +44,7 @@ public class InviteFriendFragment extends Fragment {
     private String mCurrentUserId;
     private ArrayList<User> mArrUserInvite = new ArrayList<>();
     private InviteFriendAdapter mInviteAdapter;
+    private FirebaseUser mFirebaseUser;
 
     private InviteFriendAdapter.InviteFriendInterface mInviteFriendInterface = new InviteFriendAdapter.InviteFriendInterface() {
         @Override
@@ -77,6 +81,7 @@ public class InviteFriendFragment extends Fragment {
             mCurrentUserId = bundle.getString(Contacts.KEY_CURRENT_ID);
         }
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
     }
 
     @Override
@@ -143,9 +148,18 @@ public class InviteFriendFragment extends Fragment {
         Message message = new Message("text", mCurrentUserId, "", "Vẫy tay!!!", System.currentTimeMillis()/1000);
         key = mDatabaseReference.child("Chats").push().getKey();
         mDatabaseReference.child("Chats").child(key).push().setValue(message);
-        mDatabaseReference.child("FriendGroups").child(mCurrentUserId).child("Chats").child(user.getId()).setValue(key);
-        mDatabaseReference.child("FriendGroups").child(user.getId()).child("Chats").child(mCurrentUserId).setValue(key);
+//        mDatabaseReference.child("FriendGroups").child(mCurrentUserId).child("Chats").child(user.getId()).setValue(key);
+//        mDatabaseReference.child("FriendGroups").child(user.getId()).child("Chats").child(mCurrentUserId).setValue(key);
+//        mDatabaseReference.child("RecentMessage").child(key).setValue(message);
+        Group group = new Group();
+        group.setId(key);
+        group.setName(user.getFullName()+"+"+mFirebaseUser.getDisplayName());
+        group.setGroupIcon(user.getProfilePic());
+        mDatabaseReference.child("FriendGroups").child(mCurrentUserId).child("Groups").child(user.getId()).setValue(group);
+        mDatabaseReference.child("FriendGroups").child(user.getId()).child("Groups").child(mCurrentUserId).setValue(group);
         mDatabaseReference.child("RecentMessage").child(key).setValue(message);
+        mDatabaseReference.child("Notification").child(group.getId()).push().setValue(mCurrentUserId);
+        mDatabaseReference.child("Notification").child(group.getId()).push().setValue(user.getId());
     }
 
 }

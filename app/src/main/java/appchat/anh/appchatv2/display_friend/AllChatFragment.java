@@ -3,18 +3,15 @@ package appchat.anh.appchatv2.display_friend;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -31,7 +28,6 @@ import appchat.anh.appchatv2.chat.DetailChatActivity;
 import appchat.anh.appchatv2.common.Contacts;
 import appchat.anh.appchatv2.model.Group;
 import appchat.anh.appchatv2.model.Message;
-import appchat.anh.appchatv2.model.User;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -57,7 +53,7 @@ public class AllChatFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static AllChatFragment newInstance(String currentUserId){
+    public static AllChatFragment newInstance(String currentUserId) {
         AllChatFragment allChatFragment = new AllChatFragment();
         Bundle args = new Bundle();
         args.putString(Contacts.KEY_CURRENT_ID, currentUserId);
@@ -68,8 +64,8 @@ public class AllChatFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Bundle bundle =getArguments();
-        if(bundle!=null){
+        Bundle bundle = getArguments();
+        if (bundle != null) {
             mDatabaseReference = FirebaseDatabase.getInstance().getReference();
             mCurrentUserId = bundle.getString(Contacts.KEY_CURRENT_ID);
         }
@@ -86,57 +82,87 @@ public class AllChatFragment extends Fragment {
         return view;
     }
 
-    private void initView(View view){
+    private void initView(View view) {
         mRecyclerViewAllChat = view.findViewById(R.id.recycler_view_all_chat);
     }
 
-    private void initRecyclerView(){
+    private void initRecyclerView() {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         mRecyclerViewAllChat.setLayoutManager(layoutManager);
         mRecyclerViewAllChat.setAdapter(mAllChatAdapter);
     }
 
-    private void initData(){
-        if(mCurrentUserId!=null){
-            mDatabaseReference.child("FriendGroups").child(mCurrentUserId).child("Chats").addValueEventListener(new ValueEventListener() {
+    private void initData() {
+//        if(mCurrentUserId!=null){
+//            mDatabaseReference.child("FriendGroups").child(mCurrentUserId).child("Chats").addValueEventListener(new ValueEventListener() {
+//                @Override
+//                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                    for(DataSnapshot snapshot : dataSnapshot.getChildren()){
+//                        final String idChat = (String) snapshot.getValue();
+//                        String idFriend = snapshot.getKey();
+//                        if(idFriend!=null){
+//                            mDatabaseReference.child("Users").child(idFriend).addListenerForSingleValueEvent(new ValueEventListener() {
+//                                @Override
+//                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                                    User user = dataSnapshot.getValue(User.class);
+//                                    Group group = new Group();
+//                                    group.setId(idChat);
+//                                    group.setGroupIcon(user.getProfilePic());
+//                                    group.setName(user.getFullName());
+//                                    mAllChatAdapter.addGroupChat(group);
+//                                }
+//
+//                                @Override
+//                                public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                                }
+//                            });
+//                        }
+//
+//                        if(idChat!=null){
+//                            mDatabaseReference.child("RecentMessage").child(idChat).addValueEventListener(new ValueEventListener() {
+//                                @Override
+//                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                                    Message message = dataSnapshot.getValue(Message.class);
+//                                    mAllChatAdapter.updateRecentMessage(idChat, message);
+//                                }
+//
+//                                @Override
+//                                public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                                }
+//                            });
+//                        }
+//
+//                    }
+//                }
+//
+//                @Override
+//                public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                }
+//            });
+//        }
+        if (mCurrentUserId != null) {
+            mDatabaseReference.child("FriendGroups").child(mCurrentUserId).child("Groups").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    for(DataSnapshot snapshot : dataSnapshot.getChildren()){
-                        final String idChat = (String) snapshot.getValue();
-                        String idFriend = snapshot.getKey();
-                        if(idFriend!=null){
-                            mDatabaseReference.child("Users").child(idFriend).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    User user = dataSnapshot.getValue(User.class);
-                                    Group group = new Group();
-                                    group.setId(idChat);
-                                    group.setGroupIcon(user.getProfilePic());
-                                    group.setName(user.getFullName());
-                                    mAllChatAdapter.addGroupChat(group);
-                                }
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        final Group group = snapshot.getValue(Group.class);
+                        mAllChatAdapter.addGroupChat(group);
+                        mDatabaseReference.child("RecentMessage").child(group.getId()).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                Message message = dataSnapshot.getValue(Message.class);
+                                mAllChatAdapter.updateRecentMessage(group.getId(), message);
+                            }
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                                }
-                            });
-                        }
+                            }
+                        });
 
-                        if(idChat!=null){
-                            mDatabaseReference.child("RecentMessage").child(idChat).addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    Message message = dataSnapshot.getValue(Message.class);
-                                    mAllChatAdapter.updateRecentMessage(idChat, message);
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                                }
-                            });
-                        }
 
                     }
                 }

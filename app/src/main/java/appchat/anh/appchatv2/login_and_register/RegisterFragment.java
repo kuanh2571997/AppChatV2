@@ -47,7 +47,7 @@ import static android.app.Activity.RESULT_OK;
  */
 public class RegisterFragment extends Fragment {
 
-    private final int CAMERA_CODE_IMG = 1, GALLERY_CODE_IMG = 2;
+    private final int CAMERA_CODE_IMG = 1, GALLERY_CODE_IMG=2;
     private static final String TAG = "ketqua";
 
     //View
